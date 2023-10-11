@@ -25,55 +25,39 @@ def get_mask_indices(mask: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
 def generate_A(
     mask: np.ndarray, mask_indices: np.ndarray, index_to_id: np.ndarray
 ) -> np.ndarray:
-    neighbour_matrices = generate_neighbour_matrices(
-        mask, mask_indices, index_to_id
+    N_p = generate_neighbour_size(mask, mask_indices)
+    A_up, A_down, A_left, A_right = generate_neighbour_omega(mask, mask_indices, index_to_id)
+
+    A = N_p - A_up - A_down - A_left - A_right
+
+    return A
+
+
+def generate_neighbour_size(mask: np.ndarray, mask_indices: np.ndarray) -> np.ndarray:
+    n = mask_indices.shape[0]
+    x_indices = mask_indices[:, 0]
+    y_indices = mask_indices[:, 1]
+
+    N_up = (x_indices + 1) < mask.shape[0]
+    N_down = (x_indices - 1) >= 0
+    N_left = (y_indices - 1) >= 0
+    N_right = (y_indices + 1) < mask.shape[1]
+
+    N_p = (
+        N_up.astype(np.int32)
+        + N_down.astype(np.int32)
+        + N_left.astype(np.int32)
+        + N_right.astype(np.int32)
     )
 
+    N_p = np.eye(n) * N_p
+
+    return N_p
 
 
-def generate_neighbour_size(mask: np.ndarray, mask_indices: np.ndarray)->np.ndarray:
-    n = mask_indices.shape[0]
-    N_p = np.zeros((n, 1), dtype=np.float32)
-    
-
-
-def generate_neighbour_matrices(
+def generate_neighbour_omega(
     mask: np.ndarray, mask_indices: np.ndarray, index_to_id: np.ndarray
-):
-    n = mask_indices.shape[0]
-
-    A_up = np.zeros((n, n), dtype=np.float32)
-    A_down = np.zeros((n, n), dtype=np.float32)
-    A_left = np.zeros((n, n), dtype=np.float32)
-    A_right = np.zeros((n, n), dtype=np.float32)
-
-    for pixel_id, coord in enumerate(mask_indices):
-        x, y = coord
-        # Up
-        if x > 0 and mask[x - 1, y]:
-            neighbor_id = index_to_id[x - 1, y]
-            if neighbor_id != -1:
-                A_up[pixel_id, neighbor_id] = 1.0
-        # Down
-        if x < mask.shape[0] - 1 and mask[x + 1, y]:
-            neighbor_id = index_to_id[x + 1, y]
-            if neighbor_id != -1:
-                A_down[pixel_id, neighbor_id] = 1.0
-        # Left
-        if y > 0 and mask[x, y - 1]:
-            neighbor_id = index_to_id[x, y - 1]
-            if neighbor_id != -1:
-                A_left[pixel_id, neighbor_id] = 1.0
-        # Right
-        if y < mask.shape[1] - 1 and mask[x, y + 1]:
-            neighbor_id = index_to_id[x, y + 1]
-            if neighbor_id != -1:
-                A_right[pixel_id, neighbor_id] = 1.0
-
-    return A_up, A_down, A_left, A_right
-
-
-def generate_neighbour_matrices_vec(mask, mask_indices, index_to_id):
+) -> Tuple[np.ndarray, ...]:
     n = mask_indices.shape[0]
 
     A_up = np.zeros((n, n), dtype=np.float32)
@@ -87,24 +71,35 @@ def generate_neighbour_matrices_vec(mask, mask_indices, index_to_id):
     up_indices = np.where((x > 0) & mask[x - 1, y])
     up_neighbour_ids = index_to_id[x[up_indices] - 1, y[up_indices]]
     valid_up_neighbours = up_neighbour_ids != -1
-    A_up[up_indices[0][valid_up_neighbours], up_neighbour_ids[valid_up_neighbours]] = 1.0
+    A_up[
+        up_indices[0][valid_up_neighbours], up_neighbour_ids[valid_up_neighbours]
+    ] = 1.0
 
     # Down
     down_indices = np.where((x < mask.shape[0] - 1) & mask[x + 1, y])
     down_neighbour_ids = index_to_id[x[down_indices] + 1, y[down_indices]]
     valid_down_neighbours = down_neighbour_ids != -1
-    A_down[down_indices[0][valid_down_neighbours], down_neighbour_ids[valid_down_neighbours]] = 1.0
+    A_down[
+        down_indices[0][valid_down_neighbours],
+        down_neighbour_ids[valid_down_neighbours],
+    ] = 1.0
 
     # Left
     left_indices = np.where((y > 0) & mask[x, y - 1])
     left_neighbour_ids = index_to_id[x[left_indices], y[left_indices] - 1]
     valid_left_neighbours = left_neighbour_ids != -1
-    A_left[left_indices[0][valid_left_neighbours], left_neighbour_ids[valid_left_neighbours]] = 1.0
+    A_left[
+        left_indices[0][valid_left_neighbours],
+        left_neighbour_ids[valid_left_neighbours],
+    ] = 1.0
 
     # Right
     right_indices = np.where((y < mask.shape[1] - 1) & mask[x, y + 1])
     right_neighbour_ids = index_to_id[x[right_indices], y[right_indices] + 1]
     valid_right_neighbours = right_neighbour_ids != -1
-    A_right[right_indices[0][valid_right_neighbours], right_neighbour_ids[valid_right_neighbours]] = 1.0
+    A_right[
+        right_indices[0][valid_right_neighbours],
+        right_neighbour_ids[valid_right_neighbours],
+    ] = 1.0
 
     return A_up, A_down, A_left, A_right
