@@ -1,0 +1,6 @@
+__pycache__/
+.vscode/
+
+debug.py
+*.png
+*.jpg
