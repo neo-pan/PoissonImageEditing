@@ -2,9 +2,16 @@ import os
 import numpy as np
 
 from args import get_parser
-from image_utils import read_image, write_image, get_mask_indices, gradient_over_mask, fill_target
+from image_utils import (
+    read_image,
+    write_image,
+    get_mask_indices,
+    gradient_over_mask,
+    fill_target,
+)
 from poisson_equation import generate_A, generate_b
 from discrete_possion_solver import solve
+
 
 def import_gradients(
     mask: np.ndarray, mask_indices: np.ndarray, source: np.ndarray
@@ -55,7 +62,7 @@ if __name__ == "__main__":
     source = read_image(args.source)
     target = read_image(args.target)
     mask = read_image(args.mask)
-    
+
     mask = mask.mean(-1)
     mask = (mask >= 128).astype(np.uint8)
 
@@ -68,7 +75,7 @@ if __name__ == "__main__":
         sum_v_pq = mix_gradints(mask, mask_indices, source, target)
     else:
         raise NotImplementedError
-    
+
     b = generate_b(mask, mask_indices, target, sum_v_pq)
 
     f, error = solve(A, b)
