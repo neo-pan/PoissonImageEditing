@@ -51,7 +51,6 @@ if __name__ == "__main__":
     parser.add_argument(
         "-r", "--red", type=float, default=R_FACTOR, help="red channel factor"
     )
-
     args = parser.parse_args()
     if not os.path.exists(args.source):
         raise FileNotFoundError(f"{args.source} not found")

@@ -48,7 +48,6 @@ if __name__ == "__main__":
         default="src",
         help="method to calculate gradient",
     )
-
     args = parser.parse_args()
     if not os.path.exists(args.source):
         raise FileNotFoundError(f"{args.source} not found")
@@ -62,10 +61,8 @@ if __name__ == "__main__":
     source = read_image(args.source)
     target = read_image(args.target)
     mask = read_image(args.mask)
-
     mask = mask.mean(-1)
     mask = (mask >= 128).astype(np.uint8)
-
     mask_indices, index_to_id = get_mask_indices(mask)
 
     A = generate_A(mask, mask_indices, index_to_id)
@@ -75,11 +72,9 @@ if __name__ == "__main__":
         sum_v_pq = mix_gradints(mask, mask_indices, source, target)
     else:
         raise NotImplementedError
-
     b = generate_b(mask, mask_indices, target, sum_v_pq)
-
     f, error = solve(A, b)
     print(f"Linear system solving error: {error}")
-    result = fill_target(target, mask_indices, f)
 
+    result = fill_target(target, mask_indices, f)
     write_image(args.output, result)

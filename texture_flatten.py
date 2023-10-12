@@ -92,7 +92,6 @@ if __name__ == "__main__":
     parser.add_argument(
         "--threshold", type=int, default=50, help="threshold value for edge detection"
     )
-
     args = parser.parse_args()
     if not os.path.exists(args.source):
         raise FileNotFoundError(f"{args.source} not found")
@@ -103,21 +102,17 @@ if __name__ == "__main__":
 
     source = read_image(args.source)
     mask = read_image(args.mask)
-
     mask = mask.mean(-1)
     mask = (mask >= 128).astype(np.uint8)
-
     mask_indices, index_to_id = get_mask_indices(mask)
 
     A = generate_A(mask, mask_indices, index_to_id)
-
     edges = edge_detection(source, args.edge, args.threshold)
     sum_v_pq = compute_gradints(mask, mask_indices, source, edges)
-
     b = generate_b(mask, mask_indices, source, sum_v_pq)
 
     f, error = solve(A, b)
     print(f"Linear system solving error: {error}")
-    result = fill_target(source, mask_indices, f)
 
+    result = fill_target(source, mask_indices, f)
     write_image(args.output, result)

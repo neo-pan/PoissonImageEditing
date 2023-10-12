@@ -19,12 +19,12 @@ BETA = 0.2
 
 
 def compute_gradints(
-    mask: np.ndarray, mask_indices: np.ndarray, source: np.ndarray
+    mask: np.ndarray, mask_indices: np.ndarray, source: np.ndarray, alpha: float, beta: float
 ) -> np.ndarray:
     v_source = gradient_over_mask(mask, mask_indices, source)
     g_norm = np.linalg.norm(v_source, axis=(0, 2))
 
-    v = ALPHA**BETA * v_source / np.power(g_norm, BETA)[None, :, None]
+    v = alpha**beta * v_source / np.power(g_norm, beta)[None, :, None]
 
     sum_v_pq = v.sum(-1)
 
@@ -33,7 +33,12 @@ def compute_gradints(
 
 if __name__ == "__main__":
     parser = get_parser()
-
+    parser.add_argument(
+        "-a", "--alpha", type=float, default=ALPHA, help="alpha"
+    )
+    parser.add_argument(
+        "-b", "--beta", type=float, default=BETA, help="beta"
+    )
     args = parser.parse_args()
     if not os.path.exists(args.source):
         raise FileNotFoundError(f"{args.source} not found")
@@ -44,20 +49,16 @@ if __name__ == "__main__":
 
     source = read_image(args.source)
     mask = read_image(args.mask)
-
     mask = mask.mean(-1)
     mask = (mask >= 128).astype(np.uint8)
-
     mask_indices, index_to_id = get_mask_indices(mask)
 
     A = generate_A(mask, mask_indices, index_to_id)
-
-    sum_v_pq = compute_gradints(mask, mask_indices, source)
-
+    sum_v_pq = compute_gradints(mask, mask_indices, source, args.alpha, args.beta)
     b = generate_b(mask, mask_indices, source, sum_v_pq)
 
     f, error = solve(A, b)
     print(f"Linear system solving error: {error}")
-    result = fill_target(source, mask_indices, f)
 
+    result = fill_target(source, mask_indices, f)
     write_image(args.output, result)
