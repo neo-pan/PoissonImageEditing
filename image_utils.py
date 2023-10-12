@@ -1,10 +1,10 @@
 from typing import Tuple
-import imageio
+import cv2
 import numpy as np
 
 
 def read_image(name: str) -> np.ndarray:
-    image = imageio.imread(name)
+    image = cv2.imread(name)
     assert len(image.shape) == 3
 
     return image
@@ -20,7 +20,7 @@ def write_image(name: str, image: np.ndarray) -> None:
 
     assert len(image.shape) == 3
 
-    imageio.imwrite(name, image.squeeze())
+    cv2.imwrite(name, image.squeeze())
 
 
 def get_mask_indices(mask: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
