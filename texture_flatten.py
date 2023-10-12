@@ -1,7 +1,6 @@
 import os
 import cv2
 import numpy as np
-from scipy import ndimage
 
 from args import get_parser
 from image_utils import (
