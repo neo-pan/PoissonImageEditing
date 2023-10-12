@@ -1,5 +1,6 @@
 from typing import Tuple
 import numpy as np
+from scipy.sparse import csr_matrix, dok_matrix
 
 """ 
 In the reference paper, we have a discrete Poisson equation:
@@ -17,18 +18,18 @@ Then we can solve the equation `A * f = b`.
 
 def generate_A(
     mask: np.ndarray, mask_indices: np.ndarray, index_to_id: np.ndarray
-) -> np.ndarray:
+) -> csr_matrix:
     N_p = generate_neighbour_size(mask, mask_indices)
-    A_up, A_down, A_left, A_right = generate_neighbour_omega(
+    A_omega = generate_neighbour_omega(
         mask, mask_indices, index_to_id
     )
 
-    A = N_p - A_up - A_down - A_left - A_right
+    A = N_p - A_omega
 
     return A
 
 
-def generate_neighbour_size(mask: np.ndarray, mask_indices: np.ndarray) -> np.ndarray:
+def generate_neighbour_size(mask: np.ndarray, mask_indices: np.ndarray) -> csr_matrix:
     n = mask_indices.shape[0]
     x_indices = mask_indices[:, 0]
     y_indices = mask_indices[:, 1]
@@ -38,64 +39,56 @@ def generate_neighbour_size(mask: np.ndarray, mask_indices: np.ndarray) -> np.nd
     N_left = (y_indices - 1) >= 0
     N_right = (y_indices + 1) < mask.shape[1]
 
-    N_p = (
+    N_p_data = (
         N_up.astype(np.int32)
         + N_down.astype(np.int32)
         + N_left.astype(np.int32)
         + N_right.astype(np.int32)
     )
 
-    N_p = np.eye(n, dtype=np.int32) * N_p
+    N_p_indices = np.arange(n)
+    N_p_indptr = np.arange(n+1)
+
+    N_p = csr_matrix((N_p_data, N_p_indices, N_p_indptr), shape=(n, n), dtype=np.int32)
 
     return N_p
 
 
+
 def generate_neighbour_omega(
     mask: np.ndarray, mask_indices: np.ndarray, index_to_id: np.ndarray
-) -> Tuple[np.ndarray, ...]:
+) -> csr_matrix:
     n = mask_indices.shape[0]
     x_indices = mask_indices[:, 0]
     y_indices = mask_indices[:, 1]
 
-    A_up = np.zeros((n, n), dtype=np.int32)
-    A_down = np.zeros((n, n), dtype=np.int32)
-    A_left = np.zeros((n, n), dtype=np.int32)
-    A_right = np.zeros((n, n), dtype=np.int32)
+    A_omega = dok_matrix((n, n), dtype=np.int32)
 
     # Up
     up = np.where((x_indices < mask.shape[0] - 1) & mask[x_indices + 1, y_indices])
     up_neighbour_ids = index_to_id[x_indices[up] + 1, y_indices[up]]
     valid_up_neighbours = up_neighbour_ids != -1
-    A_up[up[0][valid_up_neighbours], up_neighbour_ids[valid_up_neighbours]] = 1
+    A_omega[up[0][valid_up_neighbours], up_neighbour_ids[valid_up_neighbours]] = 1
 
     # Down
     down = np.where((x_indices > 0) & mask[x_indices - 1, y_indices])
     down_neighbour_ids = index_to_id[x_indices[down] - 1, y_indices[down]]
     valid_down_neighbours = down_neighbour_ids != -1
-    A_down[
-        down[0][valid_down_neighbours],
-        down_neighbour_ids[valid_down_neighbours],
-    ] = 1
+    A_omega[down[0][valid_down_neighbours], down_neighbour_ids[valid_down_neighbours]] = 1
 
     # Left
     left = np.where((y_indices > 0) & mask[x_indices, y_indices - 1])
     left_neighbour_ids = index_to_id[x_indices[left], y_indices[left] - 1]
     valid_left_neighbours = left_neighbour_ids != -1
-    A_left[
-        left[0][valid_left_neighbours],
-        left_neighbour_ids[valid_left_neighbours],
-    ] = 1
+    A_omega[left[0][valid_left_neighbours], left_neighbour_ids[valid_left_neighbours]] = 1
 
     # Right
     right = np.where((y_indices < mask.shape[1] - 1) & mask[x_indices, y_indices + 1])
     right_neighbour_ids = index_to_id[x_indices[right], y_indices[right] + 1]
     valid_right_neighbours = right_neighbour_ids != -1
-    A_right[
-        right[0][valid_right_neighbours],
-        right_neighbour_ids[valid_right_neighbours],
-    ] = 1
+    A_omega[right[0][valid_right_neighbours], right_neighbour_ids[valid_right_neighbours]] = 1
 
-    return A_up, A_down, A_left, A_right
+    return A_omega.tocsr()
 
 
 def generate_b(
