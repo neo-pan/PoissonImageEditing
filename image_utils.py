@@ -99,16 +99,7 @@ def fill_target(
     return result
 
 
-def boundary_on_image(image: np.ndarray, mask_indices: np.ndarray) -> np.ndarray:
-    result = image.copy()
-    x_indices = mask_indices[:, 0]
-    y_indices = mask_indices[:, 1]
-
-    result[x_indices, y_indices] = 255
-
-    return result
-
-def gradient_magnitude(image: np.ndarray):
+def gradient_magnitude(image: np.ndarray)-> np.ndarray:
     image = image.astype(np.float32)
     image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     gradient_x = cv2.Sobel(image, cv2.CV_64F, 1, 0, ksize=3)
@@ -116,3 +107,17 @@ def gradient_magnitude(image: np.ndarray):
     gradient_magnitude = np.sqrt(gradient_x**2 + gradient_y**2)
     gradient_magnitude = gradient_magnitude.astype(np.uint8)
     return gradient_magnitude
+
+def gradient_direction(image: np.ndarray)-> np.ndarray:
+    image = image.astype(np.float32)
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    gradient_x = cv2.Sobel(image, cv2.CV_64F, 1, 0, ksize=3)
+    gradient_y = cv2.Sobel(image, cv2.CV_64F, 0, 1, ksize=3)
+    gradient_direction = np.arctan2(gradient_y, gradient_x)
+    gradient_direction = gradient_direction.astype(np.uint8)
+    return gradient_direction
+
+def draw_mask_contour(image: np.ndarray, mask: np.ndarray):
+    contours, hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+    image = cv2.drawContours(image, contours, -1, (0, 255, 0), 2)
+    return image

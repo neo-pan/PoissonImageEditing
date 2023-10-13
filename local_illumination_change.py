@@ -1,5 +1,4 @@
 import os
-import math
 import numpy as np
 
 from args import get_parser

@@ -1,4 +1,5 @@
 import os
+import cv2
 import numpy as np
 
 from args import get_parser
@@ -43,6 +44,13 @@ def adjust_color_channels(
 if __name__ == "__main__":
     parser = get_parser()
     parser.add_argument(
+        "--task",
+        type=str,
+        choices=["select", "modify"],
+        default="select",
+        help="which task to perform"
+    )
+    parser.add_argument(
         "-b", "--blue", type=float, default=B_FACTOR, help="blue channel factor"
     )
     parser.add_argument(
@@ -61,8 +69,14 @@ if __name__ == "__main__":
 
     source = read_image(args.source)
     mask = read_image(args.mask)
-    target = source.copy()
-    source = adjust_color_channels(source, args.blue, args.green, args.red)
+    if args.task == "select":
+        target = cv2.cvtColor(source, cv2.COLOR_BGR2GRAY)
+        target = np.tile(target[..., None], (1, 1, 3))
+    elif args.task == "modify":
+        target = source.copy()
+        source = adjust_color_channels(source, args.blue, args.green, args.red)
+    else:
+        raise NotImplementedError
 
     mask = mask.mean(-1)
     mask = (mask >= 128).astype(np.uint8)
