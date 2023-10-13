@@ -88,6 +88,6 @@ if __name__ == "__main__":
     print(f"Linear system error: {error}")
 
     result = fill_target(target, mask_indices, f)
-    result = replicate_image(source, 3, 2)
+    result = replicate_image(result, 3, 2)
 
-    write_image('res-tile.png', result)
+    write_image(args.output, result)

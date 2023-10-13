@@ -2,18 +2,17 @@ from typing import Tuple
 import numpy as np
 from scipy.sparse import csr_matrix, dok_matrix
 
-""" 
+"""
 In the reference paper, we have a discrete Poisson equation:
 
-|N_p| f_p - \sum_{q \in N_p \cap \Omega} f_q = \
-\sum_{q \in N_p \cap \partial \Omega} f^{\star}_q + \sum_{q \in N_p} v_{pq}
+    |N_p| f_p - \sum_{q \in N_p \cap \Omega} f_q = \
+    \sum_{q \in N_p \cap \partial \Omega} f^{\star}_q + \sum_{q \in N_p} v_{pq}
 
 Where `f` is the unknown variable, we need to compute following matrix/vector:
 1. A: Index matrix of |N_p| -  \sum_{q \in N_p \cap \Omega}
 2. b: \sum_{q \in N_p \cap \partial \Omega} f^{\star}_q + \sum_{q \in N_p} v_{pq}
 Then we can solve the equation `A * f = b`.
 """
-
 
 
 def generate_A(
