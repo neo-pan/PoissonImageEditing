@@ -11,7 +11,7 @@ from image_utils import (
     fill_target,
 )
 from poisson_equation import generate_A, generate_b
-from discrete_possion_solver import solve
+from discrete_poisson_solver import solve
 
 
 def edge_detection(

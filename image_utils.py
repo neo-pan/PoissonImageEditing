@@ -107,3 +107,12 @@ def boundary_on_image(image: np.ndarray, mask_indices: np.ndarray) -> np.ndarray
     result[x_indices, y_indices] = 255
 
     return result
+
+def gradient_magnitude(image: np.ndarray):
+    image = image.astype(np.float32)
+    image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    gradient_x = cv2.Sobel(image, cv2.CV_64F, 1, 0, ksize=3)
+    gradient_y = cv2.Sobel(image, cv2.CV_64F, 0, 1, ksize=3)
+    gradient_magnitude = np.sqrt(gradient_x**2 + gradient_y**2)
+    gradient_magnitude = gradient_magnitude.astype(np.uint8)
+    return gradient_magnitude
