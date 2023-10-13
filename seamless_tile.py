@@ -32,23 +32,15 @@ def build_boundary_mask(image: np.ndarray) -> np.ndarray:
 
 def modify_target_boundary(target: np.ndarray) -> np.ndarray:
     target = target.copy().astype(np.float32)
-    t_north = target[0, :]
-    t_south = target[-1, :]
-    t_west = target[:, 0]
-    t_east = target[:, -1]
+    t_north = target[0, :].copy()
+    t_south = target[-1, :].copy()
+    t_west = target[:, 0].copy()
+    t_east = target[:, -1].copy()
 
     target[0, :] = 0.5 * (t_north + t_south)
     target[-1, :] = 0.5 * (t_north + t_south)
     target[:, 0] = 0.5 * (t_west + t_east)
     target[:, -1] = 0.5 * (t_west + t_east)
-
-    corner_point = 0.25 * (
-        target[0, 0] + target[0, -1] + target[-1, 0] + target[-1, -1]
-    )
-    target[0, 0] = corner_point
-    target[0, -1] = corner_point
-    target[-1, 0] = corner_point
-    target[-1, -1] = corner_point
 
     target[target < 0] = 0
     target[target > 255] = 255
