@@ -42,7 +42,9 @@ def modify_target_boundary(target: np.ndarray) -> np.ndarray:
     target[:, 0] = 0.5 * (t_west + t_east)
     target[:, -1] = 0.5 * (t_west + t_east)
 
-    corner_point = 0.25 * (target[0, 0] + target[0, -1] + target[-1, 0] + target[-1, -1])
+    corner_point = 0.25 * (
+        target[0, 0] + target[0, -1] + target[-1, 0] + target[-1, -1]
+    )
     target[0, 0] = corner_point
     target[0, -1] = corner_point
     target[-1, 0] = corner_point

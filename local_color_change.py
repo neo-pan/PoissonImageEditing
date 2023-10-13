@@ -48,7 +48,7 @@ if __name__ == "__main__":
         type=str,
         choices=["select", "modify"],
         default="select",
-        help="which task to perform"
+        help="which task to perform",
     )
     parser.add_argument(
         "-b", "--blue", type=float, default=B_FACTOR, help="blue channel factor"

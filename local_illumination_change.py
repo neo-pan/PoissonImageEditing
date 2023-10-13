@@ -18,7 +18,11 @@ BETA = 0.2
 
 
 def compute_gradints(
-    mask: np.ndarray, mask_indices: np.ndarray, source: np.ndarray, alpha: float, beta: float
+    mask: np.ndarray,
+    mask_indices: np.ndarray,
+    source: np.ndarray,
+    alpha: float,
+    beta: float,
 ) -> np.ndarray:
     v_source = gradient_over_mask(mask, mask_indices, source)
     g_norm = np.linalg.norm(v_source, axis=(0, 2))
@@ -32,12 +36,8 @@ def compute_gradints(
 
 if __name__ == "__main__":
     parser = get_parser()
-    parser.add_argument(
-        "-a", "--alpha", type=float, default=ALPHA, help="alpha"
-    )
-    parser.add_argument(
-        "-b", "--beta", type=float, default=BETA, help="beta"
-    )
+    parser.add_argument("-a", "--alpha", type=float, default=ALPHA, help="alpha")
+    parser.add_argument("-b", "--beta", type=float, default=BETA, help="beta")
     args = parser.parse_args()
     if not os.path.exists(args.source):
         raise FileNotFoundError(f"{args.source} not found")
