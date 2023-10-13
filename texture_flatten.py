@@ -15,7 +15,7 @@ from discrete_possion_solver import solve
 
 
 def edge_detection(
-    image: np.ndarray, method: str = "sobel", threshold: int = 50
+    image: np.ndarray, method: str, threshold: int
 ) -> np.ndarray:
     gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
 

@@ -13,7 +13,7 @@ from poisson_equation import generate_A, generate_b
 from discrete_possion_solver import solve
 
 
-R_FACTOR = 0.5
+R_FACTOR = 0.2
 G_FACTOR = 1.5
 B_FACTOR = 1.5
 

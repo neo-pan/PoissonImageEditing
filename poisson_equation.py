@@ -61,11 +61,13 @@ def generate_neighbour_omega(
     n = mask_indices.shape[0]
     x_indices = mask_indices[:, 0]
     y_indices = mask_indices[:, 1]
+    x_max = mask.shape[0]
+    y_max = mask.shape[1]
 
     A_omega = dok_matrix((n, n), dtype=np.int32)
 
     # Up
-    up = np.where((x_indices < mask.shape[0] - 1) & mask[x_indices + 1, y_indices])
+    up = np.where((x_indices < mask.shape[0] - 1) & mask[(x_indices + 1) % x_max, y_indices])
     up_neighbour_ids = index_to_id[x_indices[up] + 1, y_indices[up]]
     valid_up_neighbours = up_neighbour_ids != -1
     A_omega[up[0][valid_up_neighbours], up_neighbour_ids[valid_up_neighbours]] = 1
@@ -83,7 +85,7 @@ def generate_neighbour_omega(
     A_omega[left[0][valid_left_neighbours], left_neighbour_ids[valid_left_neighbours]] = 1
 
     # Right
-    right = np.where((y_indices < mask.shape[1] - 1) & mask[x_indices, y_indices + 1])
+    right = np.where((y_indices < mask.shape[1] - 1) & mask[x_indices, (y_indices + 1) % y_max])
     right_neighbour_ids = index_to_id[x_indices[right], y_indices[right] + 1]
     valid_right_neighbours = right_neighbour_ids != -1
     A_omega[right[0][valid_right_neighbours], right_neighbour_ids[valid_right_neighbours]] = 1
@@ -107,6 +109,8 @@ def generate_b(
 
     x_indices = mask_indices[:, 0]
     y_indices = mask_indices[:, 1]
+    x_max = mask.shape[0]
+    y_max = mask.shape[1]
 
     target = target.astype(np.float32)
     b_up = np.zeros((n, num_channels), dtype=np.float32)
@@ -115,7 +119,7 @@ def generate_b(
     b_right = np.zeros((n, num_channels), dtype=np.float32)
 
     # Up
-    up = np.where((x_indices < mask.shape[0] - 1) & ~mask[x_indices + 1, y_indices])
+    up = np.where((x_indices < mask.shape[0] - 1) & ~mask[(x_indices + 1) % x_max, y_indices])
     b_up[up] = target[x_indices[up] + 1, y_indices[up]]
 
     # Down
@@ -127,7 +131,7 @@ def generate_b(
     b_left[left] = target[x_indices[left], y_indices[left] - 1]
 
     # Right
-    right = np.where((y_indices < mask.shape[1] - 1) & ~mask[x_indices, y_indices + 1])
+    right = np.where((y_indices < mask.shape[1] - 1) & ~mask[x_indices, (y_indices + 1) % y_max])
     b_right[right] = target[x_indices[right], y_indices[right] + 1]
 
     b = b_up + b_down + b_left + b_right + sum_v_pq
